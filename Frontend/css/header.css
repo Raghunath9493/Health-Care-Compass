@@ -1,0 +1,95 @@
+header {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--primary);
+  }
+  
+  .logo span {
+    margin-left: 8px;
+  }
+  
+  nav ul {
+    display: flex;
+    list-style: none;
+  }
+  
+  nav ul li {
+    margin-left: 25px;
+  }
+  
+  nav ul li a {
+    text-decoration: none;
+    color: var(--dark);
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+  
+  nav ul li a:hover {
+    color: var(--primary);
+  }
+  
+  .user-menu {
+    display: flex;
+    align-items: center;
+  }
+
+  :root {
+    /* Current light mode variables */
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    /* ... other existing variables ... */
+    
+    /* Dark mode variables */
+    --dark-bg: #121212;
+    --dark-surface: #1e1e1e;
+    --dark-text: #e0e0e0;
+    --dark-text-secondary: #a0a0a0;
+    --dark-border: #333333;
+  }
+  
+  /* Add this to enable dark mode when the body has the 'dark-mode' class */
+  body.dark-mode {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+  }
+  
+  body.dark-mode header {
+    background-color: var(--dark-surface);
+  }
+  
+  body.dark-mode .card,
+  body.dark-mode .search-container,
+  body.dark-mode .feature-card,
+  body.dark-mode .filter-container {
+    background-color: var(--dark-surface);
+    color: var(--dark-text);
+  }
+  
+  body.dark-mode .form-control {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+    border-color: var(--dark-border);
+  }
+  
+  body.dark-mode nav ul li a {
+    color: var(--dark-text);
+  }
+  
+  /* Add more dark mode styles as needed */

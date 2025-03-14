@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account | HealthCare Compass</title>
+  <!-- CSS Links -->
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/header.css">
+  <link rel="stylesheet" href="./css/footer.css">
+  <link rel="stylesheet" href="./css/signup.css">
+  <!-- Font Awesome CDN for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <!-- Header section -->
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-heartbeat"></i>
+          <span>HealthCare Compass</span>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="#">Find Hospitals</a></li>
+            <li><a href="#">Cost Calculator</a></li>
+            <li><a href="#">Resources</a></li>
+          </ul>
+        </nav>
+        <div class="user-menu">
+          <a href="login.html" class="btn btn-outline">Sign In</a>
+          <a href="signup.html" class="btn btn-primary">Create Account</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Signup section -->
+  <!-- Signup section -->
+<section class="signup-container">
+  <div class="signup-card">
+    <h2>Create Account</h2>
+    <form> <!-- Remove action="#" or any other action -->
+      <div class="form-group">
+        <label for="fullname">Full Name</label>
+        <input type="text" id="fullname" name="fullname" placeholder="Enter your full name" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Create a password" required>
+      </div>
+      <div class="form-group">
+        <label for="confirm-password">Confirm Password</label>
+        <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+      </div>
+      <button type="submit" class="btn-signup">Create Account</button>
+    </form>
+    <div class="login-link">
+      Already have an account? <a href="/login.html">Sign in</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    const response = await fetch('/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const result = await response.json();
+    alert(result.message);
+    if (response.ok) {
+      window.location.href = '/login.html';
+    }
+  });
+</script>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-column">
+          <h4>About Us</h4>
+          <ul>
+            <li><a href="#">Our Mission</a></li>
+            <li><a href="#">How It Works</a></li>
+            <li><a href="#">Our Team</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h4>For Patients</h4>
+          <ul>
+            <li><a href="#">Find Hospitals</a></li>
+            <li><a href="#">Cost Calculator</a></li>
+            <li><a href="#">Patient Resources</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h4>Connect With Us</h4>
+          <ul>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Support Center</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 HealthCare Compass. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

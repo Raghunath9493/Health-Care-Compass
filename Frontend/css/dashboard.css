@@ -1,0 +1,88 @@
+.dashboard {
+    padding: 40px 0;
+  }
+  
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .dashboard-header h2 {
+    font-size: 28px;
+    color: var(--dark);
+  }
+  
+  .filter-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .filter-col {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 30px;
+  }
+  
+  .dashboard-main {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .chart-container {
+    height: 300px;
+    width: 100%;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  
+  .pagination-item {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--gray);
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .pagination-item.active {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  
+  .pagination-item:hover:not(.active) {
+    background-color: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
