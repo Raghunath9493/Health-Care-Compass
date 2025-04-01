@@ -151,6 +151,45 @@ function enableDiseaseSearch() {
 }
 
 
+document.addEventListener('DOMContentLoaded', function() {
+  window.dataService = new DataService();
+  window.chartService = new ChartService();
+  window.hospitalService = new HospitalService(window.dataService);
+  initializeApp();
+});
+
+async function initializeApp() {
+  try {
+    await window.hospitalService.initialize();
+    window.chartService.initializeChart();
+    addGlobalEventListeners();
+    console.log('HealthCare Compass application initialized successfully');
+  } catch (error) {
+    console.error('Error initializing application:', error);
+    showErrorMessage('Failed to initialize application. Please refresh the page and try again.');
+  }
+}
+
+function addGlobalEventListeners() {
+  const procedureSelect = document.getElementById('procedureSelect');
+  if (procedureSelect) {
+    procedureSelect.addEventListener('change', function() {
+      window.chartService.updateComparisonChart(window.hospitalService.selectedHospitals);
+    });
+  }
+}
+
+function showErrorMessage(message) {
+  const errorElement = document.createElement('div');
+  errorElement.classList.add('error-message');
+  errorElement.innerHTML = `
+    <i class="fas fa-exclamation-circle"></i>
+    <p>${message}</p>
+  `;
+  const container = document.querySelector('.dashboard') || document.body;
+  container.prepend(errorElement);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const slider = document.getElementById('hospitalSlider');
   const prevBtn = document.getElementById('prevHospital');
@@ -160,10 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
   
   function updateSlider() {
     const cardWidth = slider.querySelector('.hospital-card')?.offsetWidth || 0;
-    const gap = 20; // Match the gap from CSS
+    const gap = 20;
     slider.style.transform = `translateX(-${currentIndex * (cardWidth + gap)}px)`;
-    
-    // Disable buttons at edges
     prevBtn.disabled = currentIndex === 0;
     const totalCards = slider.querySelectorAll('.hospital-card').length;
     nextBtn.disabled = currentIndex >= totalCards - cardsPerView;
@@ -184,9 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Update on window resize
   window.addEventListener('resize', () => {
     currentIndex = 0;
     updateSlider();
   });
+  
+  setTimeout(updateSlider, 100); // Delay to ensure cards are rendered
 });

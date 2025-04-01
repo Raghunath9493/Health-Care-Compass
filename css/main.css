@@ -217,13 +217,14 @@ select.form-control {
 
 /* Ensure container centering */
 .container {
-  width: 100%;
+  /* width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 20px; */
   display: flex; /* Use flex to center children */
   flex-direction: column;
   align-items: center; /* Center all children horizontally */
+  text-align: center;
 }
 
 /* Fix section spacing */

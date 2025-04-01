@@ -40,13 +40,34 @@
   min-width: 200px;
 }
 
+/* Center the dashboard grid */
 .dashboard-grid {
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  gap: 20px;
-  width: 100%;
-  max-width: 1200px; /* Match container max-width */
-  justify-content: center; /* Center the grid within its parent */
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* Center items horizontally */
+  justify-content: center; /* Center items vertically */
+  min-height: 100vh; /* Ensure it takes up full viewport height */
+  margin: 0 auto; /* Center content horizontally */
+}
+
+/* Style individual cards for consistent appearance */
+.card {
+  width: 80%; /* Adjust width to fit within the centered container */
+  margin-bottom: 20px; /* Add spacing between cards */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for better visibility */
+}
+
+/* Align chart container and hospital list */
+.chart-container,
+.hospital-list {
+  margin: auto; /* Center content inside their containers */
+}
+
+/* Style pagination for center alignment */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .dashboard-main {
@@ -62,6 +83,7 @@
   padding: 20px; /* Consistent padding with hospital-list */
   box-sizing: border-box; /* Include padding in width */
 }
+
 
 .saved-list {
   padding: 20px;
