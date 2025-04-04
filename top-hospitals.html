@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Hospitals - HealthCare Compass</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/header.css">
+  <link rel="stylesheet" href="./css/dashboard.css">
+  <link rel="stylesheet" href="./css/hospitals.css">
+  <link rel="stylesheet" href="./css/footer.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <!-- Header section -->
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-heartbeat"></i>
+          <span>HealthCare Compass</span>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#hospital-search-card">Find Hospitals</a></li>
+            <li><a href="#" class="active">Top Hospitals</a></li>
+            <li><a href="index.html#cost-comparison-card">Cost Calculator</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <section class="dashboard">
+    <div class="container">
+      <div class="dashboard-header">
+        <h2>Top Hospitals by Utilization</h2>
+        <p>Discover the most utilized healthcare facilities in Missouri</p>
+      </div>
+
+      <div class="filter-container">
+        <div class="filter-row">
+          <div class="filter-col">
+            <div class="form-group">
+              <label>Specialty</label>
+              <select class="form-control" id="specialtyFilter">
+                <option value="all">All Specialties</option>
+                <option value="cardiology">Cardiology</option>
+                <option value="orthopedics">Orthopedics</option>
+                <option value="neurology">Neurology</option>
+                <option value="oncology">Oncology</option>
+                <option value="general">General Surgery</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-col">
+            <div class="form-group">
+              <label>Sort By</label>
+              <select class="form-control" id="sortBy">
+                <option value="utilization">Utilization (High to Low)</option>
+                <option value="name">Name (A to Z)</option>
+                <option value="city">City (A to Z)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="dashboard-main">
+          <div class="card">
+            <div class="card-header">
+              <h3>Top 10 Hospitals</h3>
+            </div>
+            <div class="hospital-list" id="topHospitalsList">
+              <!-- Hospitals will be loaded here dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-column">
+          <h4>About Us</h4>
+          <ul>
+            <li><a href="#">Our Mission</a></li>
+            <li><a href="#">How It Works</a></li>
+            <li><a href="#">Our Team</a></li>
+            <li><a href="#">Press & Media</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4>For Patients</h4>
+          <ul>
+            <li><a href="#">Find Hospitals</a></li>
+            <li><a href="#">Cost Calculator</a></li>
+            <li><a href="#">Patient Resources</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4>For Providers</h4>
+          <ul>
+            <li><a href="#">Join Our Network</a></li>
+            <li><a href="#">Provider Portal</a></li>
+            <li><a href="#">Data Submission</a></li>
+            <li><a href="#">Provider Resources</a></li>
+            <li><a href="#">Partnership Opportunities</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4>Connect With Us</h4>
+          <ul>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Support Center</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Sitemap</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 HealthCare Compass. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript files -->
+  <script src="js/data-service.js"></script>
+  <script src="js/hospital-service.js"></script>
+  <script src="js/top-hospitals.js"></script>
+</body>
+</html> 

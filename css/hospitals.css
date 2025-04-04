@@ -142,14 +142,14 @@
   box-sizing: border-box; /* Include padding in width */
 }
 
-.hospital-slider {
+/* .hospital-slider {
   display: flex;
   gap: 20px;
   transition: transform 0.3s ease;
   width: 100%;
   overflow-x: hidden;
   justify-content: center;
-}
+} */
 
 .hospital-card {
   flex: 0 0 calc(33.33% - 13.33px);
