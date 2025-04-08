@@ -54,8 +54,15 @@ class ChartService {
       return;
     }
     
+    // Sort hospitals by cost (ascending)
+    const sortedHospitals = [...hospitals].sort((a, b) => {
+      const costA = treatment ? a.cost : (a.averageCost || 0);
+      const costB = treatment ? b.cost : (b.averageCost || 0);
+      return costA - costB;
+    });
+    
     // Prepare chart data
-    const labels = hospitals.map(h => this.shortenHospitalName(h.NAME));
+    const labels = sortedHospitals.map(h => this.shortenHospitalName(h.NAME));
     
     // Get costs based on treatment or average cost
     let costs;
@@ -63,43 +70,35 @@ class ChartService {
     
     if (treatment) {
       // If treatment is specified, get costs for that treatment
-      costs = hospitals.map(hospital => {
-        // Find treatment cost using data service
-        return window.dataService.getTreatmentCost(hospital, treatment);
-      });
+      costs = sortedHospitals.map(hospital => hospital.cost || 0);
       chartTitle = `${treatment} Cost Comparison`;
     } else {
       // Otherwise use average costs
-      costs = hospitals.map(hospital => hospital.averageCost || 0);
+      costs = sortedHospitals.map(hospital => hospital.averageCost || 0);
       chartTitle = 'Average Cost Comparison';
     }
     
-    // Get cost categories for color coding
-    const costCategories = window.dataService.compareHospitalCosts(hospitals, treatment);
-    
-    // Map cost categories to colors
-    const backgroundColor = costCategories.map(hospital => this.getCostCategoryColor(hospital.costCategory, 0.7));
-    const borderColor = costCategories.map(hospital => this.getCostCategoryColor(hospital.costCategory, 1.0));
+    // Generate a color palette for the pie chart
+    const colors = this.generateColorPalette(sortedHospitals.length);
     
     // Create or update chart
     if (this.chartInstance) {
       this.chartInstance.data.labels = labels;
       this.chartInstance.data.datasets[0].data = costs;
-      this.chartInstance.data.datasets[0].backgroundColor = backgroundColor;
-      this.chartInstance.data.datasets[0].borderColor = borderColor;
+      this.chartInstance.data.datasets[0].backgroundColor = colors.background;
+      this.chartInstance.data.datasets[0].borderColor = colors.border;
       this.chartInstance.options.plugins.title.text = chartTitle;
       this.chartInstance.update();
     } else {
       const ctx = this.chartCanvas.getContext('2d');
       this.chartInstance = new Chart(ctx, {
-        type: 'bar',
+        type: 'pie',
         data: {
           labels: labels,
           datasets: [{
-            label: 'Cost ($)',
             data: costs,
-            backgroundColor: backgroundColor,
-            borderColor: borderColor,
+            backgroundColor: colors.background,
+            borderColor: colors.border,
             borderWidth: 1
           }]
         },
@@ -115,25 +114,23 @@ class ChartService {
             },
             tooltip: {
               callbacks: {
-                label: function(context) {
-                  return `Cost: $${context.raw.toFixed(2)}`;
+                label: (context) => {
+                  const index = context.dataIndex;
+                  const hospital = sortedHospitals[index];
+                  const cost = costs[index];
+                  const treatmentText = treatment ? `Treatment: ${treatment}` : 'Average Cost';
+                  return [
+                    `Hospital: ${hospital.NAME}`,
+                    `${treatmentText}: $${cost.toFixed(2)}`
+                  ];
                 }
               }
             },
             legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Cost in USD'
-              },
-              ticks: {
-                callback: function(value) {
-                  return '$' + value.toFixed(2);
+              position: 'right',
+              labels: {
+                font: {
+                  size: 12
                 }
               }
             }
@@ -147,6 +144,48 @@ class ChartService {
   }
 
   /**
+   * Generate a color palette for the pie chart
+   * @param {number} count - Number of colors needed
+   * @returns {Object} Object with background and border colors
+   */
+  generateColorPalette(count) {
+    // Define a set of visually distinct colors
+    const baseColors = [
+      { bg: 'rgba(52, 168, 83, 0.7)', border: 'rgba(52, 168, 83, 1.0)' }, // Green
+      { bg: 'rgba(251, 188, 5, 0.7)', border: 'rgba(251, 188, 5, 1.0)' }, // Yellow
+      { bg: 'rgba(234, 67, 53, 0.7)', border: 'rgba(234, 67, 53, 1.0)' }, // Red
+      { bg: 'rgba(66, 133, 244, 0.7)', border: 'rgba(66, 133, 244, 1.0)' }, // Blue
+      { bg: 'rgba(171, 71, 188, 0.7)', border: 'rgba(171, 71, 188, 1.0)' }, // Purple
+      { bg: 'rgba(255, 152, 0, 0.7)', border: 'rgba(255, 152, 0, 1.0)' }, // Orange
+      { bg: 'rgba(0, 188, 212, 0.7)', border: 'rgba(0, 188, 212, 1.0)' }, // Cyan
+      { bg: 'rgba(233, 30, 99, 0.7)', border: 'rgba(233, 30, 99, 1.0)' }, // Pink
+      { bg: 'rgba(76, 175, 80, 0.7)', border: 'rgba(76, 175, 80, 1.0)' }, // Light Green
+      { bg: 'rgba(121, 85, 72, 0.7)', border: 'rgba(121, 85, 72, 1.0)' }  // Brown
+    ];
+    
+    // If we need more colors than in our base set, generate additional colors
+    const backgroundColors = [];
+    const borderColors = [];
+    
+    for (let i = 0; i < count; i++) {
+      if (i < baseColors.length) {
+        backgroundColors.push(baseColors[i].bg);
+        borderColors.push(baseColors[i].border);
+      } else {
+        // Generate a random color for additional segments
+        const hue = (i * 137.508) % 360; // Golden angle approximation
+        backgroundColors.push(`hsla(${hue}, 70%, 60%, 0.7)`);
+        borderColors.push(`hsla(${hue}, 70%, 60%, 1.0)`);
+      }
+    }
+    
+    return {
+      background: backgroundColors,
+      border: borderColors
+    };
+  }
+
+  /**
    * Show cost category legend
    */
   showCostLegend() {
@@ -157,15 +196,15 @@ class ChartService {
       <div class="cost-legend">
         <div class="legend-item">
           <span class="color-box" style="background-color: rgba(52, 168, 83, 0.7);"></span>
-          <span class="legend-label">Best (Low Cost)</span>
+          <span class="legend-label">Lowest Cost</span>
         </div>
         <div class="legend-item">
           <span class="color-box" style="background-color: rgba(251, 188, 5, 0.7);"></span>
-          <span class="legend-label">Average Cost</span>
+          <span class="legend-label">Middle Cost</span>
         </div>
         <div class="legend-item">
           <span class="color-box" style="background-color: rgba(234, 67, 53, 0.7);"></span>
-          <span class="legend-label">High Cost</span>
+          <span class="legend-label">Highest Cost</span>
         </div>
       </div>
     `;

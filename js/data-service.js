@@ -400,6 +400,64 @@ class DataService {
     });
     return Array.from(cities).sort();
   }
+
+  /**
+   * Get user's current location using browser geolocation
+   * @returns {Promise} Promise that resolves with user location coordinates
+   */
+  getUserLocation() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by your browser'));
+        return;
+      }
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (error) => {
+          reject(error);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    });
+  }
+
+  /**
+   * Calculate distance between two coordinates using the Haversine formula
+   * @param {Object} coord1 - First coordinate {latitude, longitude}
+   * @param {Object} coord2 - Second coordinate {latitude, longitude}
+   * @returns {number} Distance in miles
+   */
+  calculateDistance(coord1, coord2) {
+    if (!coord1 || !coord2) return null;
+    
+    const R = 3959; // Earth's radius in miles
+    const lat1 = this.toRadians(coord1.latitude);
+    const lat2 = this.toRadians(coord2.latitude);
+    const deltaLat = this.toRadians(coord2.latitude - coord1.latitude);
+    const deltaLon = this.toRadians(coord2.longitude - coord1.longitude);
+    
+    const a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(deltaLon/2) * Math.sin(deltaLon/2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+  
+  /**
+   * Convert degrees to radians
+   * @param {number} degrees - Angle in degrees
+   * @returns {number} Angle in radians
+   */
+  toRadians(degrees) {
+    return degrees * (Math.PI / 180);
+  }
 }
 
 // Create and export a singleton instance

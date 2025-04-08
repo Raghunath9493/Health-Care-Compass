@@ -5,104 +5,123 @@
   flex-direction: column;
   gap: 20px;
   padding: 20px;
-  width: 100%; /* Fill the parent card’s width */
+  width: 100%; /* Fill the parent card's width */
   box-sizing: border-box; /* Include padding in width */
 }
 
 .hospital-card {
   display: flex;
-  background-color: white;
-  border-radius: var(--radius);
+  flex-direction: row;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  width: 100%;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .hospital-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.hospital-content {
+/* Left column - Hospital name */
+.hospital-name-column {
   flex: 1;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  width: 100%;
-}
-
-.hospital-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
+  justify-content: center;
+  border-right: 1px solid #eee;
+  min-width: 200px;
 }
 
 .hospital-name {
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-color);
-  margin-right: 15px;
+  margin: 0 0 10px 0;
+  color: #2c3e50;
 }
 
-.hospital-rating {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.reviews {
-  color: var(--text-light);
-  font-size: 14px;
-  margin-left: 5px;
-}
-
-.hospital-info {
-  color: var(--text-light);
-  margin-bottom: 15px;
-  font-size: 14px;
-}
-
-
-
-.hospital-specialties {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 15px;
-}
-
-.specialty-tag {
-  background-color: var(--primary-light);
-  color: var(--primary-dark);
-  padding: 5px 10px;
-  border-radius: 20px;
+.distance-badge {
+  display: inline-block;
+  background-color: #e8f4f8;
+  color: #3498db;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
 }
 
-.hospital-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-}
-
-.estimated-cost {
+/* Center column - Hospital details */
+.hospital-details-column {
+  flex: 2;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid #eee;
 }
 
-.estimated-cost div:first-child {
+.hospital-info {
+  margin-bottom: 15px;
+}
+
+.hospital-address {
+  margin: 0 0 10px 0;
+  color: #555;
   font-size: 14px;
-  color: var(--text-light);
-  margin-bottom: 5px;
+}
+
+.hospital-cost {
+  margin: 0 0 10px 0;
+  margin: 0 0 10px 0;
+  font-weight: 500;
+  font-size: 23px;
+  font-weight: bold;
+  
+}
+
+.hospital-treatments {
+  margin-top: 10px;
+}
+
+.hospital-treatments p {
+  margin: 0 0 5px 0;
+  font-weight: 500;
+}
+
+.hospital-treatments ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.hospital-treatments li {
+  margin-bottom: 3px;
+  font-size: 14px;
+}
+
+/* Right column - Hospital actions */
+.hospital-actions-column {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 150px;
 }
 
 .hospital-actions {
   display: flex;
+  flex-direction: column;
   gap: 10px;
+  width: 100%;
+}
+
+.hospital-actions .btn {
+  width: 100%;
+  text-align: center;
 }
 
 /* Hospital map styles */
@@ -117,19 +136,25 @@
     flex-direction: column;
   }
   
-  .hospital-footer {
-    flex-direction: column;
-    gap: 15px;
-    align-items: flex-start;
+  .hospital-name-column,
+  .hospital-details-column,
+  .hospital-actions-column {
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    padding: 15px;
+  }
+  
+  .hospital-actions-column {
+    border-bottom: none;
   }
   
   .hospital-actions {
-    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
   }
   
   .hospital-actions .btn {
-    flex: 1;
-    text-align: center;
+    width: 48%;
   }
 }
 
@@ -138,7 +163,7 @@
   position: relative;
   padding: 20px;
   overflow: hidden;
-  width: 100%; /* Fill the parent card’s width */
+  width: 100%; /* Fill the parent card's width */
   box-sizing: border-box; /* Include padding in width */
 }
 
@@ -212,4 +237,107 @@
   .hospital-list {
     width: 100%;
   }
+}
+
+/* Distance badge styling */
+.distance-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 10px;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Distance-based styling for hospital cards */
+.hospital-card.distance-very-close {
+  border-left: 4px solid #2ecc71; /* Green for very close */
+}
+
+.hospital-card.distance-close {
+  border-left: 4px solid #3498db; /* Blue for close */
+}
+
+.hospital-card.distance-medium {
+  border-left: 4px solid #f39c12; /* Orange for medium distance */
+}
+
+.hospital-card.distance-far {
+  border-left: 4px solid #e74c3c; /* Red for far */
+}
+
+/* Hospital card header with distance */
+.hospital-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.hospital-name {
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* Hospital details layout */
+.hospital-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.hospital-info {
+  flex-grow: 1;
+}
+
+.hospital-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .hospital-details {
+    flex-direction: row;
+  }
+  
+  .hospital-actions {
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+/* Location message styles */
+.location-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 15px;
+  max-width: 350px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.location-message-content {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.location-message-content p {
+  margin: 0 0 8px 0;
+}
+
+.location-message-content p:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
