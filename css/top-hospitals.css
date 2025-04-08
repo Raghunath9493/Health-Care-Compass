@@ -1,0 +1,126 @@
+/* Top Hospitals Page Styles */
+.top-hospitals-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.filters-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #333;
+}
+
+.filter-group select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    min-width: 200px;
+}
+
+.hospital-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.hospital-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.hospital-rank {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    min-width: 40px;
+    text-align: center;
+}
+
+.hospital-info {
+    flex: 1;
+}
+
+.hospital-info h4 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+.hospital-info p {
+    margin: 0.25rem 0;
+    color: #666;
+}
+
+.hospital-contact {
+    min-width: 250px;
+}
+
+.hospital-contact p {
+    margin: 0.5rem 0;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hospital-contact i {
+    color: #3498db;
+    width: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hospital-item {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .hospital-contact {
+        min-width: 100%;
+    }
+
+    .filters-container {
+        flex-direction: column;
+    }
+
+    .filter-group select {
+        width: 100%;
+    }
+}
+
+/* Loading State */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+/* Error State */
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: #e74c3c;
+    background: #fde8e8;
+    border-radius: 8px;
+    margin: 1rem 0;
+} 

@@ -1,0 +1,132 @@
+.hero {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #3498db 100%);
+  color: white;
+  padding: 60px 0;
+  text-align: center; /* Center all content */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hero .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center children horizontally */
+  justify-content: center; /* Center children vertically */
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.2;
+  max-width: 800px; /* Prevent over-stretching */
+}
+
+.hero p {
+  font-size: 1.25rem;
+  margin-bottom: 30px;
+  max-width: 600px; /* Keep it readable */
+  line-height: 1.5;
+}
+
+.search-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius);
+  padding: 20px;
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center; /* Center inputs */
+}
+
+.search-col {
+  flex: 1;
+  min-width: 250px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left; /* Align labels and inputs left within their column */
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: var(--text-color);
+}
+
+.form-control {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+.search-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn.btn-primary {
+  padding: 12px 24px;
+  font-size: 1rem;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero {
+    padding: 40px 0;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .hero p {
+    font-size: 1rem;
+  }
+  
+  .search-row {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .search-col {
+    min-width: 100%;
+  }
+}

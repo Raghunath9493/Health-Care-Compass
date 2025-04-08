@@ -1,0 +1,176 @@
+/* Dashboard styles for HealthCare Compass */
+
+.dashboard {
+  padding: 40px 0 60px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.dashboard-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* .view-controls {
+  display: flex;
+  gap: 10px;
+} */
+
+.filter-container {
+  background-color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.filter-col {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Center the dashboard grid */
+.dashboard-grid {
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* Center items horizontally */
+  justify-content: center; /* Center items vertically */
+  min-height: 100vh; /* Ensure it takes up full viewport height */
+  margin: 0 auto; /* Center content horizontally */
+}
+
+/* Style individual cards for consistent appearance */
+.card {
+  width: 80%; /* Adjust width to fit within the centered container */
+  margin-bottom: 20px; /* Add spacing between cards */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for better visibility */
+}
+
+/* Align chart container and hospital list */
+.chart-container,
+.hospital-list {
+  margin: auto; /* Center content inside their containers */
+}
+
+/* Style pagination for center alignment */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%; /* Ensure it fills its grid cell */
+}
+
+.chart-container {
+  width: 100%; /* Match the parent card’s width */
+  max-width: 100%; /* Prevent overflow */
+  padding: 20px; /* Consistent padding with hospital-list */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+
+.saved-list {
+  padding: 20px;
+  text-align: center;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.no-results i {
+  font-size: 48px;
+  color: var(--text-light);
+  margin-bottom: 15px;
+}
+
+.no-results p {
+  margin-bottom: 20px;
+  color: var(--text-light);
+}
+
+.error-message {
+  background-color: #FFEBEE;
+  color: var(--danger-color);
+  padding: 15px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.error-message i {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+.pagination-item {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.pagination-item:hover {
+  background-color: var(--primary-light);
+}
+
+.pagination-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+@media (max-width: 992px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    width: 100%; 
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .filter-col {
+    width: 100%;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
