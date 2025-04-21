@@ -12,175 +12,228 @@ class DataService {
   }
 
   /**
-   * Load hospitals data from merged_data.csv file
-   * @returns {Promise} Promise that resolves when data is loaded
-   */
-  async loadHospitalsData() {
-    try {
-      // Fix for 404 error - use the correct path to the CSV file
-      const response = await fetch('data/merged_data.csv');
-      const csvData = await response.text();
-      this.rawHospitalEntries = this.parseCSV(csvData);
-      
-      // Process the raw entries to get unique hospitals with stats
-      this.processHospitalData();
-      
-      this.dataLoaded = true;
-      console.log(`Loaded ${this.hospitalsData.length} unique hospitals with ${this.rawHospitalEntries.length} total entries`);
-      
-      // Generate mock ratings for hospitals
-      this.generateMockRatings();
-      
-      return this.hospitalsData;
-    } catch (error) {
-      console.error('Error loading hospitals data:', error);
-      throw error;
-    }
+ * Load hospitals data from CSV
+ * @returns {Promise} Promise that resolves when data is loaded
+ */
+async loadHospitalsData() {
+  try {
+    // Fetch the CSV data
+    const response = await fetch('data/merged_data.csv');
+    const csvText = await response.text();
+    
+    // Parse CSV
+    this.rawHospitalEntries = this.parseCSV(csvText);
+    
+    // Process the data
+    this.processHospitalData();
+    
+    return true;
+  } catch (error) {
+    console.error('Error loading hospitals data:', error);
+    throw error;
   }
+}
 
-    /**
-   * Process raw hospital entries to get unique hospitals with statistics
+/**
+ * Parse CSV text into array of objects
+ * @param {string} csvText - CSV text to parse
+ * @returns {Array} Array of objects representing CSV rows
+ */
+parseCSV(csvText) {
+  // Split by lines
+  const lines = csvText.split('\n');
+  
+  // Get headers from first line
+  const headers = lines[0].split(',').map(header => header.trim());
+  
+  // Parse each line
+  return lines.slice(1)
+    .filter(line => line.trim() !== '')
+    .map(line => {
+      const values = line.split(',');
+      const entry = {};
+      
+      headers.forEach((header, index) => {
+        entry[header] = values[index] ? values[index].trim() : '';
+      });
+      
+      return entry;
+    });
+}
+
+     /**
+ * Process raw hospital entries to get unique hospitals with statistics
+ */
+processHospitalData() {
+  // Create a map to store unique hospitals and their statistics
+  const hospitalMap = new Map();
+  
+  // Process each entry
+  this.rawHospitalEntries.forEach(entry => {
+    // Skip entries with missing required fields
+    if (!entry.NAME || !entry.CITY) {
+      console.warn('Skipping entry with missing NAME or CITY:', entry);
+      return;
+    }
+    
+    const hospitalKey = `${entry.NAME}-${entry.CITY}`;
+    
+    if (!hospitalMap.has(hospitalKey)) {
+      // Create a new hospital entry
+      hospitalMap.set(hospitalKey, {
+        NAME: entry.NAME,
+        ADDRESS: entry.ADDRESS || '',
+        CITY: entry.CITY,
+        treatments: {},
+        totalCases: 0,
+        totalCost: 0,
+        averageCost: 0,
+        utilization: 0 // Initialize utilization counter
+      });
+    }
+    
+    const hospital = hospitalMap.get(hospitalKey);
+    
+    // Count this treatment
+    const treatment = entry.DESCRIPTION ? entry.DESCRIPTION.trim() : 'Unknown Treatment';
+    if (!hospital.treatments[treatment]) {
+      hospital.treatments[treatment] = {
+        count: 0,
+        totalCost: 0,
+        averageCost: 0,
+        utilization: 0 // Track utilization per treatment
+      };
+    }
+    
+    const cost = parseFloat(entry.BASE_ENCOUNTER_COST) || 0;
+    // Use the UTILIZED column from the CSV
+    const utilization = parseInt(entry.UTILIZED) || 0;
+    
+    // Update treatment statistics
+    hospital.treatments[treatment].count++;
+    hospital.treatments[treatment].totalCost += cost;
+    hospital.treatments[treatment].utilization += utilization;
+    hospital.treatments[treatment].averageCost = 
+      hospital.treatments[treatment].totalCost / hospital.treatments[treatment].count;
+    
+    // Update hospital statistics
+    hospital.totalCases++;
+    hospital.totalCost += cost;
+    hospital.utilization += utilization; // Add the actual utilization value from CSV
+    hospital.averageCost = hospital.totalCost / hospital.totalCases;
+  });
+  
+  // Convert map to array
+  this.hospitalsData = Array.from(hospitalMap.values());
+  
+  // Log some statistics for debugging
+  console.log(`Processed ${this.hospitalsData.length} unique hospitals with ${this.rawHospitalEntries.length} total entries`);
+  
+  // Log the top 5 hospitals by utilization for verification
+  const top5 = [...this.hospitalsData].sort((a, b) => b.utilization - a.utilization).slice(0, 5);
+  console.log('Top 5 hospitals by utilization:', top5.map(h => `${h.NAME} (${h.CITY}): ${h.utilization}`));
+}
+  /**
+   * Get unique treatment descriptions from all hospital data
+   * @param {number} minCount - Minimum number of occurrences to include
+   * @returns {Array} Array of unique treatment descriptions
    */
-    processHospitalData() {
-      // Create a map to store unique hospitals and their statistics
-      const hospitalMap = new Map();
-      
-      // Process each entry
-      this.rawHospitalEntries.forEach(entry => {
-        // Skip entries with missing required fields
-        if (!entry.NAME || !entry.CITY) {
-          console.warn('Skipping entry with missing NAME or CITY:', entry);
-          return;
-        }
-        
-        const hospitalKey = `${entry.NAME}-${entry.CITY}`;
-        
-        if (!hospitalMap.has(hospitalKey)) {
-          // Create a new hospital entry
-          hospitalMap.set(hospitalKey, {
-            NAME: entry.NAME,
-            ADDRESS: entry.ADDRESS || '',
-            CITY: entry.CITY,
-            treatments: {},
-            totalCases: 0,
-            totalCost: 0,
-            averageCost: 0
-          });
-        }
-        
-        const hospital = hospitalMap.get(hospitalKey);
-        
-        // Count this treatment - Fix for TypeError by adding null check
-        const treatment = entry.DESCRIPTION ? entry.DESCRIPTION.trim() : 'Unknown Treatment';
-        if (!hospital.treatments[treatment]) {
-          hospital.treatments[treatment] = {
-            count: 0,
-            totalCost: 0,
-            averageCost: 0
-          };
-        }
-        
-        const cost = parseFloat(entry.BASE_ENCOUNTER_COST) || 0;
-        
-        // Update treatment statistics
-        hospital.treatments[treatment].count++;
-        hospital.treatments[treatment].totalCost += cost;
-        hospital.treatments[treatment].averageCost = 
-          hospital.treatments[treatment].totalCost / hospital.treatments[treatment].count;
-        
-        // Update hospital statistics
-        hospital.totalCases++;
-        hospital.totalCost += cost;
-        hospital.averageCost = hospital.totalCost / hospital.totalCases;
-        
-        // Add utilization metric (based on total cases)
-        hospital.utilization = hospital.totalCases;
+  getUniqueTreatmentDescriptions(minCount = 10) {
+    // Create a map to count occurrences of each treatment
+    const treatmentCounts = new Map();
+    
+    // Count occurrences of each treatment across all hospitals
+    this.hospitalsData.forEach(hospital => {
+      Object.keys(hospital.treatments || {}).forEach(treatment => {
+        const count = treatmentCounts.get(treatment) || 0;
+        treatmentCounts.set(treatment, count + hospital.treatments[treatment].count);
       });
-      
-      // Convert map to array
-      this.hospitalsData = Array.from(hospitalMap.values());
-    }
-  
-    /**
-     * Get unique treatment descriptions from all hospital data
-     * @param {number} minCount - Minimum number of occurrences to include
-     * @returns {Array} Array of unique treatment descriptions
-     */
-    getUniqueTreatmentDescriptions(minCount = 10) {
-      // Create a map to count occurrences of each treatment
-      const treatmentCounts = new Map();
-      
-      // Count occurrences of each treatment across all hospitals
-      this.hospitalsData.forEach(hospital => {
-        Object.keys(hospital.treatments || {}).forEach(treatment => {
-          const count = treatmentCounts.get(treatment) || 0;
-          treatmentCounts.set(treatment, count + hospital.treatments[treatment].count);
-        });
-      });
-      
-      // Filter treatments by minimum count and sort by frequency (descending)
-      return Array.from(treatmentCounts.entries())
-        .filter(([_, count]) => count >= minCount)
-        .sort((a, b) => b[1] - a[1])
-        .map(([treatment]) => treatment);
-    }
-  
-    /**
-     * Get top hospitals by utilization (total cases)
-     * @param {number} limit - Maximum number of hospitals to return
-     * @returns {Array} Top hospitals sorted by utilization
-     */
-    getTopHospitals(limit = 10) {
-      // Sort hospitals by utilization (descending)
-      const sortedHospitals = this.hospitalsData.slice().sort((a, b) => {
-        return (b.utilization || 0) - (a.utilization || 0);
-      });
-      
-      // Return the top N hospitals
-      return sortedHospitals.slice(0, limit);
-    }
+    });
+    
+    // Filter treatments by minimum count and sort by frequency (descending)
+    return Array.from(treatmentCounts.entries())
+      .filter(([_, count]) => count >= minCount)
+      .sort((a, b) => b[1] - a[1])
+      .map(([treatment]) => treatment);
+  }
 
   /**
-   * Parse CSV data into array of objects
-   * @param {string} csvText - Raw CSV text
-   * @returns {Array} Array of objects representing CSV rows
+   * Get top hospitals by utilization
+   * @param {number} limit - Maximum number of hospitals to return
+   * @returns {Array} Top hospitals sorted by utilization
    */
-  parseCSV(csvText) {
-    if (!csvText || typeof csvText !== 'string') {
-      console.error('Invalid CSV data:', csvText);
-      return [];
-    }
+  getTopHospitals(limit = 50) {
+    // Sort hospitals by utilization (descending)
+    const sortedHospitals = [...this.hospitalsData].sort((a, b) => {
+      return (b.utilization || 0) - (a.utilization || 0);
+    });
     
-    const lines = csvText.split('\n');
-    if (lines.length < 2) {
-      console.error('CSV data has insufficient lines:', lines.length);
-      return [];
-    }
-    
-    const headers = lines[0].split(',');
-    if (headers.length < 1) {
-      console.error('CSV headers are invalid:', headers);
-      return [];
-    }
-    
-    return lines.slice(1)
-      .filter(line => line && line.trim() !== '')
-      .map(line => {
-        const values = this.parseCSVLine(line);
-        const entry = {};
-        
-        headers.forEach((header, index) => {
-          // Convert numeric values
-          if (header === 'BASE_ENCOUNTER_COST') {
-            entry[header] = values[index] ? parseFloat(values[index]) : 0;
-          } else {
-            entry[header] = values[index] || '';
-          }
-        });
-        
-        return entry;
-      });
+    // Return the top N hospitals
+    return sortedHospitals.slice(0, limit);
   }
+
+  /**
+   * Get hospitals by treatment
+   * @param {string} treatment - Treatment to filter by
+   * @returns {Array} Hospitals that offer the specified treatment
+   */
+  getHospitalsByTreatment(treatment) {
+    if (!treatment) return this.hospitalsData;
+    
+    return this.hospitalsData.filter(hospital => {
+      return hospital.treatments && hospital.treatments[treatment];
+    }).sort((a, b) => {
+      // Sort by the utilization of this specific treatment
+      const aUtil = a.treatments[treatment]?.utilization || 0;
+      const bUtil = b.treatments[treatment]?.utilization || 0;
+      return bUtil - aUtil;
+    });
+  }
+
+  /**
+ * Parse CSV text into array of objects
+ * @param {string} csvText - CSV text to parse
+ * @returns {Array} Array of objects representing CSV rows
+ */
+parseCSV(csvText) {
+  if (!csvText || typeof csvText !== 'string') {
+    console.error('Invalid CSV data:', csvText);
+    return [];
+  }
+  
+  const lines = csvText.split('\n');
+  if (lines.length < 2) {
+    console.error('CSV data has insufficient lines:', lines.length);
+    return [];
+  }
+  
+  const headers = lines[0].split(',').map(header => header.trim());
+  if (headers.length < 1) {
+    console.error('CSV headers are invalid:', headers);
+    return [];
+  }
+  
+  return lines.slice(1)
+    .filter(line => line && line.trim() !== '')
+    .map(line => {
+      const values = this.parseCSVLine(line);
+      const entry = {};
+      
+      headers.forEach((header, index) => {
+        // Convert numeric values
+        if (header === 'BASE_ENCOUNTER_COST') {
+          entry[header] = values[index] ? parseFloat(values[index]) : 0;
+        } else if (header === 'UTILIZED') {
+          // Ensure UTILIZED is parsed as an integer
+          entry[header] = values[index] ? parseInt(values[index], 10) : 0;
+        } else {
+          entry[header] = values[index] || '';
+        }
+      });
+      
+      return entry;
+    });
+}
 
   /**
    * Parse a single CSV line, handling quoted values correctly
