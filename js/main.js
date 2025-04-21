@@ -297,3 +297,48 @@ function showSuccessMessage(message) {
     }
   }, 5000);
 }
+// Function to load top hospitals by utilization
+function loadTopHospitals() {
+  // Get top 10 hospitals by utilization from your data service
+  const topHospitals = hospitalService.getTopHospitalsByUtilization(10);
+  const topHospitalsContainer = document.getElementById('topHospitalsList');
+  
+  if (!topHospitalsContainer) return;
+  
+  topHospitalsContainer.innerHTML = '';
+  
+  topHospitals.forEach((hospital, index) => {
+    const hospitalCard = document.createElement('div');
+    hospitalCard.className = 'top-hospital-card';
+    
+    hospitalCard.innerHTML = `
+      <div class="top-hospital-header">
+        <span class="top-hospital-rank">${index + 1}</span>
+        <span class="top-hospital-name">${hospital.name}</span>
+      </div>
+      <div class="top-hospital-location">
+        <i class="fas fa-map-marker-alt"></i> ${hospital.city}, ${hospital.state}
+      </div>
+      <div class="top-hospital-stats">
+        <div class="top-hospital-stat">
+          <div class="stat-value">${hospital.utilization.toLocaleString()}</div>
+          <div class="stat-label">Patients</div>
+        </div>
+        <div class="top-hospital-stat">
+          <div class="stat-value">${hospital.rating || 'N/A'}</div>
+          <div class="stat-label">Rating</div>
+        </div>
+      </div>
+    `;
+    
+    topHospitalsContainer.appendChild(hospitalCard);
+  });
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Existing code...
+  
+  // Load top hospitals
+  loadTopHospitals();
+});

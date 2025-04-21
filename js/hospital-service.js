@@ -641,6 +641,7 @@ class HospitalService {
     });
   }
 
+
   /**
    * Toggle hospital in compare list
    * @param {Object} hospital - Hospital to toggle
@@ -789,6 +790,21 @@ class HospitalService {
       this.loadingIndicatorElement.style.display = show ? 'block' : 'none';
     }
   }
+  /**
+   * Get top hospitals by utilization
+   * @param {number} limit - Maximum number of hospitals to return
+   * @returns {Array} Top hospitals sorted by utilization
+   */
+  getTopHospitalsByUtilization(limit = 10) {
+    // Sort hospitals by utilization (descending)
+    const sortedHospitals = this.dataService.hospitalsData.slice().sort((a, b) => {
+      return (b.utilization || 0) - (a.utilization || 0);
+    });
+    
+    // Return the top N hospitals
+    return sortedHospitals.slice(0, limit);
+  }
+
 
   /**
    * Request user location with a clear message
