@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', async function() {
       // Initialize data service
       await dataService.loadHospitalsData();
       
+      // Populate specialty filter with actual treatment descriptions
+      populateSpecialtyFilter();
+      
       // Load top hospitals
       loadTopHospitals();
       
@@ -25,6 +28,32 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     /**
+     * Populate specialty filter with actual treatment descriptions from data
+     */
+    function populateSpecialtyFilter() {
+      const specialtyFilter = document.getElementById('specialtyFilter');
+      if (!specialtyFilter) return;
+      
+      // Get unique treatment descriptions (with at least 10 occurrences)
+      const treatments = dataService.getUniqueTreatmentDescriptions(10);
+      
+      // Clear existing options except "All Specialties"
+      while (specialtyFilter.options.length > 1) {
+        specialtyFilter.remove(1);
+      }
+      
+      // Add treatment descriptions as options
+      treatments.forEach(treatment => {
+        if (treatment && treatment !== 'Unknown Treatment' && treatment.trim() !== '') {
+          const option = document.createElement('option');
+          option.value = treatment;
+          option.textContent = treatment;
+          specialtyFilter.appendChild(option);
+        }
+      });
+    }
+    
+    /**
      * Load and display top hospitals
      */
     function loadTopHospitals() {
@@ -32,26 +61,16 @@ document.addEventListener('DOMContentLoaded', async function() {
       const sortBy = document.getElementById('sortBy').value;
       
       // Get top hospitals from data service
-      let topHospitals = dataService.getTopHospitals();
+      let topHospitals = dataService.getTopHospitals(20);
       
       // Apply specialty filter if not "all"
       if (specialtyFilter !== 'all') {
         topHospitals = topHospitals.filter(hospital => {
           if (!hospital.treatments) return false;
           
-          // Map specialties to treatment keywords
-          const specialtyKeywords = {
-            'cardiology': ['heart', 'cardiac', 'cardiovascular'],
-            'orthopedics': ['joint', 'bone', 'knee', 'hip'],
-            'neurology': ['brain', 'neuro', 'spine'],
-            'oncology': ['cancer', 'tumor', 'oncology'],
-            'general': ['surgery', 'general']
-          };
-          
-          // Check if hospital has treatments matching the specialty
-          const keywords = specialtyKeywords[specialtyFilter] || [];
+          // Check if hospital has the selected treatment
           return Object.keys(hospital.treatments).some(treatment => 
-            keywords.some(keyword => treatment.toLowerCase().includes(keyword))
+            treatment === specialtyFilter
           );
         });
       }
@@ -61,9 +80,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         topHospitals.sort((a, b) => a.NAME.localeCompare(b.NAME));
       } else if (sortBy === 'city') {
         topHospitals.sort((a, b) => a.CITY.localeCompare(b.CITY));
+      } else if (sortBy === 'cost') {
+        topHospitals.sort((a, b) => a.averageCost - b.averageCost);
       } else {
         // Default sort by utilization (totalCases)
-        topHospitals.sort((a, b) => b.totalCases - a.totalCases);
+        topHospitals.sort((a, b) => b.utilization - a.utilization);
       }
       
       // Render hospitals

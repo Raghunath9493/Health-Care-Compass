@@ -38,83 +38,107 @@ class DataService {
     }
   }
 
-  /**
+    /**
    * Process raw hospital entries to get unique hospitals with statistics
    */
-  processHospitalData() {
-    // Create a map to store unique hospitals and their statistics
-    const hospitalMap = new Map();
-    
-    // Process each entry
-    this.rawHospitalEntries.forEach(entry => {
-      // Skip entries with missing required fields
-      if (!entry.NAME || !entry.CITY) {
-        console.warn('Skipping entry with missing NAME or CITY:', entry);
-        return;
-      }
+    processHospitalData() {
+      // Create a map to store unique hospitals and their statistics
+      const hospitalMap = new Map();
       
-      const hospitalKey = `${entry.NAME}-${entry.CITY}`;
+      // Process each entry
+      this.rawHospitalEntries.forEach(entry => {
+        // Skip entries with missing required fields
+        if (!entry.NAME || !entry.CITY) {
+          console.warn('Skipping entry with missing NAME or CITY:', entry);
+          return;
+        }
+        
+        const hospitalKey = `${entry.NAME}-${entry.CITY}`;
+        
+        if (!hospitalMap.has(hospitalKey)) {
+          // Create a new hospital entry
+          hospitalMap.set(hospitalKey, {
+            NAME: entry.NAME,
+            ADDRESS: entry.ADDRESS || '',
+            CITY: entry.CITY,
+            treatments: {},
+            totalCases: 0,
+            totalCost: 0,
+            averageCost: 0
+          });
+        }
+        
+        const hospital = hospitalMap.get(hospitalKey);
+        
+        // Count this treatment - Fix for TypeError by adding null check
+        const treatment = entry.DESCRIPTION ? entry.DESCRIPTION.trim() : 'Unknown Treatment';
+        if (!hospital.treatments[treatment]) {
+          hospital.treatments[treatment] = {
+            count: 0,
+            totalCost: 0,
+            averageCost: 0
+          };
+        }
+        
+        const cost = parseFloat(entry.BASE_ENCOUNTER_COST) || 0;
+        
+        // Update treatment statistics
+        hospital.treatments[treatment].count++;
+        hospital.treatments[treatment].totalCost += cost;
+        hospital.treatments[treatment].averageCost = 
+          hospital.treatments[treatment].totalCost / hospital.treatments[treatment].count;
+        
+        // Update hospital statistics
+        hospital.totalCases++;
+        hospital.totalCost += cost;
+        hospital.averageCost = hospital.totalCost / hospital.totalCases;
+        
+        // Add utilization metric (based on total cases)
+        hospital.utilization = hospital.totalCases;
+      });
       
-      if (!hospitalMap.has(hospitalKey)) {
-        // Create a new hospital entry
-        hospitalMap.set(hospitalKey, {
-          NAME: entry.NAME,
-          ADDRESS: entry.ADDRESS || '',
-          CITY: entry.CITY,
-          treatments: {},
-          totalCases: 0,
-          totalCost: 0,
-          averageCost: 0
+      // Convert map to array
+      this.hospitalsData = Array.from(hospitalMap.values());
+    }
+  
+    /**
+     * Get unique treatment descriptions from all hospital data
+     * @param {number} minCount - Minimum number of occurrences to include
+     * @returns {Array} Array of unique treatment descriptions
+     */
+    getUniqueTreatmentDescriptions(minCount = 10) {
+      // Create a map to count occurrences of each treatment
+      const treatmentCounts = new Map();
+      
+      // Count occurrences of each treatment across all hospitals
+      this.hospitalsData.forEach(hospital => {
+        Object.keys(hospital.treatments || {}).forEach(treatment => {
+          const count = treatmentCounts.get(treatment) || 0;
+          treatmentCounts.set(treatment, count + hospital.treatments[treatment].count);
         });
-      }
+      });
       
-      const hospital = hospitalMap.get(hospitalKey);
+      // Filter treatments by minimum count and sort by frequency (descending)
+      return Array.from(treatmentCounts.entries())
+        .filter(([_, count]) => count >= minCount)
+        .sort((a, b) => b[1] - a[1])
+        .map(([treatment]) => treatment);
+    }
+  
+    /**
+     * Get top hospitals by utilization (total cases)
+     * @param {number} limit - Maximum number of hospitals to return
+     * @returns {Array} Top hospitals sorted by utilization
+     */
+    getTopHospitals(limit = 10) {
+      // Sort hospitals by utilization (descending)
+      const sortedHospitals = this.hospitalsData.slice().sort((a, b) => {
+        return (b.utilization || 0) - (a.utilization || 0);
+      });
       
-      // Count this treatment - Fix for TypeError by adding null check
-      const treatment = entry.DESCRIPTION ? entry.DESCRIPTION.trim() : 'Unknown Treatment';
-      if (!hospital.treatments[treatment]) {
-        hospital.treatments[treatment] = {
-          count: 0,
-          totalCost: 0,
-          averageCost: 0
-        };
-      }
-      
-      const cost = parseFloat(entry.BASE_ENCOUNTER_COST) || 0;
-      hospital.treatments[treatment].count++;
-      hospital.treatments[treatment].totalCost += cost;
-      hospital.treatments[treatment].averageCost = hospital.treatments[treatment].totalCost / hospital.treatments[treatment].count;
-      
-      // Update hospital totals
-      hospital.totalCases++;
-      hospital.totalCost += cost;
-      hospital.averageCost = hospital.totalCost / hospital.totalCases;
-    });
-    
-    // Convert map to array and sort by total cases (descending)
-    this.hospitalsData = Array.from(hospitalMap.values())
-      .sort((a, b) => b.totalCases - a.totalCases);
-    
-    // Store hospital statistics separately
-    this.hospitalStats = this.hospitalsData.reduce((stats, hospital) => {
-      stats[`${hospital.NAME}-${hospital.CITY}`] = {
-        totalCases: hospital.totalCases,
-        totalCost: hospital.totalCost,
-        averageCost: hospital.averageCost,
-        treatments: hospital.treatments
-      };
-      return stats;
-    }, {});
-  }
-
-  /**
-   * Get top hospitals based on number of cases treated
-   * @param {number} limit - Maximum number of hospitals to return
-   * @returns {Array} Top hospitals
-   */
-  getTopHospitals(limit = 10) {
-    return this.hospitalsData.slice(0, limit);
-  }
+      // Return the top N hospitals
+      return sortedHospitals.slice(0, limit);
+    }
 
   /**
    * Parse CSV data into array of objects
