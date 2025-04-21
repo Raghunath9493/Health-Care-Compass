@@ -169,7 +169,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 ` : ''}
               </div>
               <div class="top-hospital-actions">
-                <a href="hospital-detail.html?hospital=${encodeURIComponent(hospital.NAME)}&city=${encodeURIComponent(hospital.CITY)}" class="btn btn-primary">View Details</a>
+                <a href="https://www.google.com/maps/search/${encodeURIComponent(hospital.NAME + ' ' + hospital.ADDRESS + ' ' + hospital.CITY)}" target="_blank" class="btn btn-primary">
+                  <i class="fas fa-directions"></i> Get Directions
+                </a>
               </div>
             </div>
           `;
