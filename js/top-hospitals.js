@@ -157,10 +157,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <div class="stat-value">$${Math.round(hospital.averageCost).toLocaleString()}</div>
                     <div class="stat-label">Avg. Cost</div>
                   </div>
-                  <div class="stat">
-                    <div class="stat-value">${hospital.rating || '4.0'}</div>
-                    <div class="stat-label">Rating</div>
-                  </div>
+                  
                 </div>
                 ${topTreatments.length > 0 ? `
                   <div class="top-treatments">
