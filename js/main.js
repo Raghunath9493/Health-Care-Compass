@@ -3,36 +3,21 @@
  * Initializes services and coordinates application functionality
  */
 
-// Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Initialize services
-  window.dataService = new DataService();
-  window.chartService = new ChartService();
-  window.hospitalService = new HospitalService(window.dataService);
-  
-  // Initialize application
-  initializeApp();
-  
-  // Initialize slider functionality
-  initializeSlider();
-});
-
-/**
- * Initialize the application
- */
-async function initializeApp() {
+document.addEventListener('DOMContentLoaded', async function() {
   try {
-    // Show loading indicator
-    showLoadingIndicator(true);
+    // Initialize services
+    window.dataService = new DataService();
+    window.hospitalService = new HospitalService(window.dataService);
+    window.chartService = new ChartService();
     
-    // Initialize hospital data
+    // Load initial data
     await window.dataService.loadHospitalsData();
     
     // Initialize hospital service
     await window.hospitalService.initialize();
     
-    // Initialize chart with default data
-    window.chartService.initializeChart();
+    // Now that data is loaded, we can safely load top hospitals
+    loadTopHospitals();
     
     // Add event listeners for global actions
     addGlobalEventListeners();
@@ -40,16 +25,52 @@ async function initializeApp() {
     // Initialize file upload for disease data
     initializeFileUpload();
     
+    // Add search form event listener
+    const searchForm = document.getElementById('searchForm');
+    if (searchForm) {
+      searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const treatment = document.getElementById('treatment').value;
+        const location = document.getElementById('location').value;
+        
+        // Only show dashboard if either treatment or location is provided
+        if (treatment.trim() || location.trim()) {
+          const dashboardSection = document.getElementById('dashboardSection');
+          if (dashboardSection) {
+            dashboardSection.style.display = 'block';
+          }
+          
+          // Perform the search
+          window.hospitalService.handleSearch(treatment, location);
+        }
+      });
+    }
+    
+    // Initialize slider functionality
+    initializeSlider();
+    
+    // Add filter event listeners
+    const filters = ['budgetFilter', 'cityFilter', 'distanceFilter', 'sortBy'];
+    filters.forEach(filterId => {
+      const filterElement = document.getElementById(filterId);
+      if (filterElement) {
+        filterElement.addEventListener('change', () => {
+          window.hospitalService.applyFilters();
+        });
+      }
+    });
+    
     console.log('HealthCare Compass application initialized successfully');
     
     // Hide loading indicator
     showLoadingIndicator(false);
+    
   } catch (error) {
     console.error('Error initializing application:', error);
     showErrorMessage('Failed to initialize application. Please refresh the page and try again.');
     showLoadingIndicator(false);
   }
-}
+});
 
 /**
  * Add event listeners for global actions
@@ -63,6 +84,35 @@ function addGlobalEventListeners() {
       window.chartService.updateComparisonChart(window.hospitalService.selectedHospitals, treatment);
     });
   }
+   // Add event listener for compare button in hospital cards
+   document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('compare-btn') || e.target.closest('.compare-btn')) {
+      const hospitalCard = e.target.closest('.hospital-card');
+      if (hospitalCard) {
+        const hospitalId = hospitalCard.dataset.hospitalId;
+        const hospital = window.dataService.hospitalsData.find(h => h.id === hospitalId);
+        
+        if (hospital) {
+          // Add to selected hospitals for comparison
+          if (!window.hospitalService.selectedHospitals) {
+            window.hospitalService.selectedHospitals = [];
+          }
+          
+          // Check if hospital is already selected
+          const isSelected = window.hospitalService.selectedHospitals.some(h => h.id === hospitalId);
+          
+          if (!isSelected) {
+            window.hospitalService.selectedHospitals.push(hospital);
+            // Update the comparison chart
+            window.chartService.updateComparisonChart(window.hospitalService.selectedHospitals);
+            
+            // Scroll to comparison chart
+            document.getElementById('cost-comparison-card').scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }
+    }
+  });
   
   // Add event listener for download report button
   const downloadReportBtn = document.getElementById('downloadReportBtn');
@@ -299,11 +349,22 @@ function showSuccessMessage(message) {
 }
 // Function to load top hospitals by utilization
 function loadTopHospitals() {
-  // Get top 10 hospitals by utilization from your data service
-  const topHospitals = hospitalService.getTopHospitalsByUtilization(10);
-  const topHospitalsContainer = document.getElementById('topHospitalsList');
+  // Check if services are initialized
+  if (!window.dataService || !window.hospitalService) {
+    console.warn('Services not initialized yet');
+    return;
+  }
   
+  const topHospitalsContainer = document.getElementById('topHospitalsList');
   if (!topHospitalsContainer) return;
+  
+  // Get top hospitals from the data service instead
+  const topHospitals = window.dataService.getTopHospitals(10);
+  
+  if (!topHospitals || topHospitals.length === 0) {
+    topHospitalsContainer.innerHTML = '<p>No hospital data available</p>';
+    return;
+  }
   
   topHospitalsContainer.innerHTML = '';
   
@@ -314,14 +375,14 @@ function loadTopHospitals() {
     hospitalCard.innerHTML = `
       <div class="top-hospital-header">
         <span class="top-hospital-rank">${index + 1}</span>
-        <span class="top-hospital-name">${hospital.name}</span>
+        <span class="top-hospital-name">${hospital.NAME}</span>
       </div>
       <div class="top-hospital-location">
-        <i class="fas fa-map-marker-alt"></i> ${hospital.city}, ${hospital.state}
+        <i class="fas fa-map-marker-alt"></i> ${hospital.CITY}
       </div>
       <div class="top-hospital-stats">
         <div class="top-hospital-stat">
-          <div class="stat-value">${hospital.utilization.toLocaleString()}</div>
+          <div class="stat-value">${hospital.utilization ? hospital.utilization.toLocaleString() : 'N/A'}</div>
           <div class="stat-label">Patients</div>
         </div>
         <div class="top-hospital-stat">
@@ -336,9 +397,72 @@ function loadTopHospitals() {
 }
 
 // Call this function when the page loads
-document.addEventListener('DOMContentLoaded', function() {
-  // Existing code...
-  
-  // Load top hospitals
-  loadTopHospitals();
+document.addEventListener('DOMContentLoaded', async function() {
+  try {
+    // Initialize services
+    window.dataService = new DataService();
+    window.hospitalService = new HospitalService(window.dataService);
+    window.chartService = new ChartService();
+    
+    // Load initial data
+    await window.dataService.loadHospitalsData();
+    
+    // Initialize hospital service
+    await window.hospitalService.initialize();
+    
+    // Now that data is loaded, we can safely load top hospitals
+    loadTopHospitals();
+    
+    // Add event listeners for global actions
+    addGlobalEventListeners();
+    
+    // Initialize file upload for disease data
+    initializeFileUpload();
+    
+    // Add search form event listener
+    const searchForm = document.getElementById('searchForm');
+    if (searchForm) {
+      searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const treatment = document.getElementById('treatment').value;
+        const location = document.getElementById('location').value;
+        
+        // Only show dashboard if either treatment or location is provided
+        if (treatment.trim() || location.trim()) {
+          const dashboardSection = document.getElementById('dashboardSection');
+          if (dashboardSection) {
+            dashboardSection.style.display = 'block';
+          }
+          
+          // Perform the search
+          window.hospitalService.handleSearch(treatment, location);
+        }
+      });
+    }
+    
+    // Initialize slider functionality
+    initializeSlider();
+    
+    // Add filter event listeners
+    const filters = ['budgetFilter', 'cityFilter', 'distanceFilter', 'sortBy'];
+    filters.forEach(filterId => {
+      const filterElement = document.getElementById(filterId);
+      if (filterElement) {
+        filterElement.addEventListener('change', () => {
+          window.hospitalService.applyFilters();
+        });
+      }
+    });
+    
+    console.log('HealthCare Compass application initialized successfully');
+    
+    // Hide loading indicator
+    showLoadingIndicator(false);
+    
+  } catch (error) {
+    console.error('Error initializing application:', error);
+    showErrorMessage('Failed to initialize application. Please refresh the page and try again.');
+    showLoadingIndicator(false);
+  }
 });
+  
