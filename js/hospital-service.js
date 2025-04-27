@@ -97,13 +97,11 @@ class HospitalService {
       
       // Try to get user location
       try {
-        // Request user location with a clear message
         this.userLocation = await this.requestUserLocation();
         console.log('User location obtained:', this.userLocation);
       } catch (error) {
         console.warn('Could not get user location:', error);
-        // Set a default location (e.g., New York) as fallback
-        this.userLocation = { latitude: 40.7128, longitude: -74.0060 };
+        this.userLocation = { latitude: 40.7128, longitude: -74.0060 }; // Default: New York
         console.log('Using default location:', this.userLocation);
       }
       
@@ -140,15 +138,12 @@ class HospitalService {
   populateCityFilter() {
     if (!this.cityFilterElement) return;
     
-    // Get unique cities from data service
     const cities = this.dataService.getUniqueCities();
     
-    // Clear existing options except the first one
     while (this.cityFilterElement.options.length > 1) {
       this.cityFilterElement.remove(1);
     }
     
-    // Add city options
     cities.forEach(city => {
       const option = document.createElement('option');
       option.value = city;
@@ -164,27 +159,20 @@ class HospitalService {
     const treatment = this.treatmentInputElement ? this.treatmentInputElement.value.trim() : '';
     const location = this.locationInputElement ? this.locationInputElement.value.trim() : '';
     
-    // Store current treatment for comparison
     this.currentTreatment = treatment;
     
     this.showLoading(true);
     
-    // Clear current results
     if (this.hospitalListElement) {
       this.hospitalListElement.innerHTML = '';
     }
     
     try {
-      // Use the searchByTreatmentAndLocation method from data service
       const hospitals = this.dataService.searchByTreatmentAndLocation(treatment, location);
       
-      // Update filtered hospitals
       this.filteredHospitals = hospitals;
-      
-      // Reset to first page
       this.currentPage = 1;
       
-      // Update search results title
       let titleText = 'Hospital Search Results';
       if (treatment) titleText = `${treatment} (${hospitals.length} hospitals found)`;
       if (location && !treatment) titleText = `Hospitals in ${location} (${hospitals.length} found)`;
@@ -194,7 +182,6 @@ class HospitalService {
         this.searchResultsTitleElement.textContent = titleText;
       }
       
-      // Apply filters and render
       this.applyFilters();
       
     } catch (error) {
@@ -218,20 +205,16 @@ class HospitalService {
   applyFilters() {
     this.showLoading(true);
     
-    // Start with current filtered hospitals or all hospitals if none
     let results = this.filteredHospitals.length ? [...this.filteredHospitals] : [...this.dataService.hospitalsData];
     
-    // Apply budget filter
     if (this.budgetFilterElement && this.budgetFilterElement.value !== 'any') {
       results = this.filterByBudget(results, this.budgetFilterElement.value);
     }
     
-    // Apply city filter
     if (this.cityFilterElement && this.cityFilterElement.value !== 'all') {
       results = this.dataService.filterByLocation(this.cityFilterElement.value);
     }
     
-    // Apply distance filter
     if (this.distanceFilterElement && this.distanceFilterElement.value !== 'any' && this.userLocation) {
       const maxDistance = parseInt(this.distanceFilterElement.value);
       if (!isNaN(maxDistance)) {
@@ -239,7 +222,6 @@ class HospitalService {
       }
     }
     
-    // Apply rating filter
     if (this.ratingFilterElement && this.ratingFilterElement.value !== 'any') {
       const minRating = parseInt(this.ratingFilterElement.value);
       if (!isNaN(minRating)) {
@@ -247,12 +229,10 @@ class HospitalService {
       }
     }
     
-    // Apply sorting
     if (this.sortByElement) {
       results = this.sortHospitals(results, this.sortByElement.value);
     }
     
-    // Update filtered hospitals and render
     this.filteredHospitals = results;
     this.currentPage = 1;
     this.renderHospitals();
@@ -268,7 +248,6 @@ class HospitalService {
    */
   filterByBudget(hospitals, budgetRange) {
     return hospitals.filter(hospital => {
-      // Use the base encounter cost or average cost if available
       const cost = hospital.BASE_ENCOUNTER_COST || hospital.averageCost || 0;
       
       switch (budgetRange) {
@@ -293,48 +272,39 @@ class HospitalService {
    * @returns {Array} Filtered hospitals
    */
   filterByDistance(hospitals, maxDistance) {
-    if (!this.userLocation) return hospitals;
+    if (!this.userLocation) {
+      console.warn('User location not available for distance filtering');
+      return hospitals;
+    }
     
     return hospitals.map(hospital => {
-      // Calculate distance if not already calculated
       if (hospital.distance === undefined) {
-        // Get hospital coordinates (for demo, we'll use a mapping of cities to coordinates)
-        const hospitalCoords = this.getHospitalCoordinates(hospital.CITY);
+        const hospitalCoords = this.getHospitalCoordinates(hospital);
         
         if (hospitalCoords) {
-          // Calculate actual distance using the Haversine formula
           hospital.distance = this.dataService.calculateDistance(this.userLocation, hospitalCoords);
         } else {
-          // Fallback to random distance if coordinates not available
-          hospital.distance = Math.random() * 50;
+          hospital.distance = null;
         }
       }
       return hospital;
-    }).filter(hospital => hospital.distance <= maxDistance);
+    }).filter(hospital => hospital.distance !== null && hospital.distance <= maxDistance);
   }
 
   /**
-   * Get coordinates for a hospital based on its city
-   * @param {string} city - Hospital city
+   * Get coordinates for a hospital
+   * @param {Object} hospital - Hospital object
    * @returns {Object|null} Coordinates {latitude, longitude} or null if not found
    */
-  getHospitalCoordinates(city) {
-    // This is a simplified mapping for demo purposes
-    // In a real application, you would have a database of hospital coordinates
-    const cityCoordinates = {
-      'NEW YORK': { latitude: 40.7128, longitude: -74.0060 },
-      'LOS ANGELES': { latitude: 34.0522, longitude: -118.2437 },
-      'CHICAGO': { latitude: 41.8781, longitude: -87.6298 },
-      'HOUSTON': { latitude: 29.7604, longitude: -95.3698 },
-      'PHOENIX': { latitude: 33.4484, longitude: -112.0740 },
-      'PHILADELPHIA': { latitude: 39.9526, longitude: -75.1652 },
-      'SAN ANTONIO': { latitude: 29.4241, longitude: -98.4936 },
-      'SAN DIEGO': { latitude: 32.7157, longitude: -117.1611 },
-      'DALLAS': { latitude: 32.7767, longitude: -96.7970 },
-      'SAN JOSE': { latitude: 37.3382, longitude: -121.8863 }
-    };
-    
-    return cityCoordinates[city] || null;
+  getHospitalCoordinates(hospital) {
+    if (hospital.LATITUDE !== null && hospital.LONGITUDE !== null && !isNaN(hospital.LATITUDE) && !isNaN(hospital.LONGITUDE)) {
+      return {
+        latitude: hospital.LATITUDE,
+        longitude: hospital.LONGITUDE
+      };
+    }
+    console.warn(`No valid coordinates for ${hospital.NAME}, ${hospital.CITY}`);
+    return null;
   }
 
   /**
@@ -355,41 +325,34 @@ class HospitalService {
         return [...hospitals].sort((a, b) => (b.totalCases || 0) - (a.totalCases || 0));
       case 'distance':
         if (this.userLocation) {
-          return [...hospitals].sort((a, b) => (a.distance || 0) - (b.distance || 0));
+          return [...hospitals].sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
         }
         return hospitals;
       case 'recommended':
       default:
-        // Recommended is a combination of rating, cases, and distance
         return [...hospitals].sort((a, b) => {
           const ratingA = parseFloat(a.rating || 0);
           const ratingB = parseFloat(b.rating || 0);
           const casesA = a.totalCases || 0;
           const casesB = b.totalCases || 0;
           
-          // Normalize cases (0-1 scale)
           const maxCases = Math.max(...hospitals.map(h => h.totalCases || 0));
           const normalizedCasesA = maxCases > 0 ? casesA / maxCases : 0;
           const normalizedCasesB = maxCases > 0 ? casesB / maxCases : 0;
           
-          // If we have user location, factor in distance
           if (this.userLocation) {
             const distA = a.distance || 50;
             const distB = b.distance || 50;
-            
-            // Normalize distance (0-1 scale, inverted so closer is better)
-            const maxDist = 50; // Assume max distance is 50 miles
+            const maxDist = 50;
             const normalizedDistA = 1 - Math.min(distA / maxDist, 1);
             const normalizedDistB = 1 - Math.min(distB / maxDist, 1);
             
-            // Score is weighted combination of rating, cases, and distance
             const scoreA = (ratingA / 5 * 0.4) + (normalizedCasesA * 0.4) + (normalizedDistA * 0.2);
             const scoreB = (ratingB / 5 * 0.4) + (normalizedCasesB * 0.4) + (normalizedDistB * 0.2);
             
             return scoreB - scoreA;
           }
           
-          // If no location, just use rating and cases
           const scoreA = (ratingA / 5 * 0.6) + (normalizedCasesA * 0.4);
           const scoreB = (ratingB / 5 * 0.6) + (normalizedCasesB * 0.4);
           return scoreB - scoreA;
@@ -447,16 +410,13 @@ class HospitalService {
       return;
     }
     
-    // Generate hospital cards
     const hospitalCards = hospitalsToShow.map(hospital => this.createHospitalCard(hospital)).join('');
     this.hospitalListElement.innerHTML = hospitalCards;
     
-    // Clear slider if it exists
     if (this.sliderElement) {
       this.sliderElement.innerHTML = '';
     }
     
-    // Add event listeners to hospital cards
     hospitalsToShow.forEach(hospital => {
       const hospitalKey = `${hospital.NAME}-${hospital.CITY}`;
       const compareBtn = document.getElementById(`compare-${hospitalKey}`);
@@ -466,7 +426,6 @@ class HospitalService {
       }
     });
     
-    // Render pagination
     this.renderPagination();
   }
 
@@ -476,7 +435,6 @@ class HospitalService {
    * @returns {string} HTML for hospital card
    */
   createHospitalCard(hospital) {
-    // Ensure all hospital data has consistent properties
     const hospitalData = {
       name: hospital.NAME || 'Hospital Name Not Available',
       address: hospital.ADDRESS || 'Address Not Available',
@@ -486,14 +444,12 @@ class HospitalService {
       distance: hospital.distance !== undefined ? hospital.distance : null
     };
     
-    // Calculate distance if user location is available
     let distanceText = '';
     let distanceClass = '';
-    if (this.userLocation && hospitalData.distance !== null) {
+    if (this.userLocation && hospitalData.distance !== null && !isNaN(hospitalData.distance)) {
       const distance = hospitalData.distance.toFixed(1);
       distanceText = `<span class="distance-badge">${distance} miles away</span>`;
       
-      // Add distance-based class for styling
       if (distance <= 5) {
         distanceClass = 'distance-very-close';
       } else if (distance <= 15) {
@@ -503,27 +459,25 @@ class HospitalService {
       } else {
         distanceClass = 'distance-far';
       }
+    } else {
+      distanceText = `<span class="distance-badge">Distance unavailable</span>`;
+      distanceClass = 'distance-unavailable';
     }
     
-    // Determine cost indicator class and value
     const cost = hospitalData.averageCost;
     let costClass = 'cost-medium';
     if (cost < 100) costClass = 'cost-low';
     if (cost > 150) costClass = 'cost-high';
     
-    // Format cost as currency
     const costDisplay = `$${cost.toFixed(2)}`;
     
-    // Check if hospital is in compare list
     const hospitalKey = `${hospital.NAME}-${hospital.CITY}`;
     const isCompared = this.selectedHospitals.some(h => `${h.NAME}-${h.CITY}` === hospitalKey);
     const compareButtonClass = isCompared ? 'btn-primary' : 'btn-outline';
     const compareButtonText = isCompared ? 'Remove' : 'Compare';
     
-    // Create Google Maps URL
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hospitalData.address}, ${hospitalData.city}`)}`;
     
-    // Create hospital card HTML with three-column layout
     return `
       <div class="hospital-card ${distanceClass}">
         <!-- Left column - Hospital name -->
@@ -575,7 +529,7 @@ class HospitalService {
     
     const totalPages = Math.ceil(this.filteredHospitals.length / this.itemsPerPage);
     const currentPage = this.currentPage;
-    const maxVisiblePages = 5; // Maximum page numbers to show
+    const maxVisiblePages = 5;
     
     if (totalPages <= 1) {
       this.paginationElement.innerHTML = '';
@@ -584,19 +538,15 @@ class HospitalService {
     
     let paginationHTML = '';
     
-    // Previous button
     if (currentPage > 1) {
       paginationHTML += `<div class="pagination-item" data-page="${currentPage - 1}"><i class="fas fa-chevron-left"></i></div>`;
     }
     
-    // Calculate page numbers to display
     let startPage, endPage;
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total pages are less than or equal to max
       startPage = 1;
       endPage = totalPages;
     } else {
-      // Calculate start and end pages for the visible range
       const halfMax = Math.floor(maxVisiblePages / 2);
       if (currentPage <= halfMax) {
         startPage = 1;
@@ -610,7 +560,6 @@ class HospitalService {
       }
     }
     
-    // Add page numbers
     for (let i = startPage; i <= endPage; i++) {
       if (i === currentPage) {
         paginationHTML += `<div class="pagination-item active">${i}</div>`;
@@ -619,21 +568,18 @@ class HospitalService {
       }
     }
     
-    // Next button
     if (currentPage < totalPages) {
       paginationHTML += `<div class="pagination-item" data-page="${currentPage + 1}"><i class="fas fa-chevron-right"></i></div>`;
     }
     
     this.paginationElement.innerHTML = paginationHTML;
     
-    // Add event listeners to pagination items
     const paginationItems = this.paginationElement.querySelectorAll('.pagination-item[data-page]');
     paginationItems.forEach(item => {
       item.addEventListener('click', () => {
         this.currentPage = parseInt(item.dataset.page);
         this.renderHospitals();
         
-        // Scroll to top of hospital list
         if (this.hospitalListElement) {
           this.hospitalListElement.scrollIntoView({ behavior: 'smooth' });
         }
@@ -641,42 +587,35 @@ class HospitalService {
     });
   }
 
-
   /**
    * Toggle hospital in compare list
    * @param {Object} hospital - Hospital to toggle
- */
-toggleCompare(hospital) {
-  const hospitalKey = `${hospital.NAME}-${hospital.CITY}`;
-  const index = this.selectedHospitals.findIndex(h => `${h.NAME}-${h.CITY}` === hospitalKey);
-  
-  if (index === -1) {
-    // Add to compare list if not already there
-    if (this.selectedHospitals.length >= 10) {
-      alert('You can compare up to 10 hospitals at a time. Please remove one first.');
-      return;
+   */
+  toggleCompare(hospital) {
+    const hospitalKey = `${hospital.NAME}-${hospital.CITY}`;
+    const index = this.selectedHospitals.findIndex(h => `${h.NAME}-${h.CITY}` === hospitalKey);
+    
+    if (index === -1) {
+      if (this.selectedHospitals.length >= 10) {
+        alert('You can compare up to 10 hospitals at a time. Please remove one first.');
+        return;
+      }
+      
+      this.selectedHospitals.push(hospital);
+    } else {
+      this.selectedHospitals.splice(index, 1);
     }
     
-    this.selectedHospitals.push(hospital);
-  } else {
-    // Remove from compare list
-    this.selectedHospitals.splice(index, 1);
+    const costComparisonCard = document.getElementById('cost-comparison-card');
+    if (costComparisonCard && this.selectedHospitals.length > 0) {
+      costComparisonCard.style.display = 'block';
+    } else if (costComparisonCard && this.selectedHospitals.length === 0) {
+      costComparisonCard.style.display = 'none';
+    }
+    
+    this.updateComparisonChart();
+    this.renderHospitals();
   }
-  
-  // Ensure cost comparison card is visible
-  const costComparisonCard = document.getElementById('cost-comparison-card');
-  if (costComparisonCard && this.selectedHospitals.length > 0) {
-    costComparisonCard.style.display = 'block';
-  } else if (costComparisonCard && this.selectedHospitals.length === 0) {
-    costComparisonCard.style.display = 'none';
-  }
-  
-  // Update comparison chart
-  this.updateComparisonChart();
-  
-  // Re-render hospitals to update compare buttons
-  this.renderHospitals();
-}
 
   /**
    * Update comparison chart with selected hospitals
@@ -684,15 +623,10 @@ toggleCompare(hospital) {
   updateComparisonChart() {
     if (!this.comparisonChartElement || !window.chartService) return;
     
-    // If we have a current treatment, use it for comparison
     if (this.currentTreatment && this.selectedHospitals.length > 0) {
-      // Get comparison data from data service
       const comparisonData = this.dataService.compareHospitalCosts(this.selectedHospitals, this.currentTreatment);
-      
-      // Update chart with comparison data
       window.chartService.updateComparisonChart(comparisonData, this.currentTreatment);
     } else {
-      // Otherwise just use the selected hospitals with their average costs
       window.chartService.updateComparisonChart(this.selectedHospitals);
     }
   }
@@ -702,26 +636,21 @@ toggleCompare(hospital) {
    * @param {Object} hospital - Hospital to show details for
    */
   showHospitalDetails(hospital) {
-    // Get the modal element
     const modal = document.getElementById('hospitalDetailsModal');
     if (!modal) {
-      // Create modal if it doesn't exist
       this.createHospitalDetailsModal();
     }
     
-    // Update modal content
     const modalTitle = document.getElementById('hospitalDetailsTitle');
     const modalBody = document.getElementById('hospitalDetailsBody');
     
     if (modalTitle) modalTitle.textContent = hospital.NAME;
     
     if (modalBody) {
-      // Get treatments sorted by count (most common first)
       const treatments = hospital.treatments ? 
         Object.entries(hospital.treatments).sort((a, b) => b[1].count - a[1].count) : 
         [];
       
-      // Create treatments HTML
       const treatmentsHtml = treatments.map(([treatment, stats]) => `
         <tr>
           <td>${treatment}</td>
@@ -756,7 +685,6 @@ toggleCompare(hospital) {
       `;
     }
     
-    // Show the modal
     $('#hospitalDetailsModal').modal('show');
   }
 
@@ -764,7 +692,6 @@ toggleCompare(hospital) {
    * Create hospital details modal
    */
   createHospitalDetailsModal() {
-    // Create modal element
     const modalHtml = `
       <div class="modal fade" id="hospitalDetailsModal" tabindex="-1" role="dialog" aria-labelledby="hospitalDetailsTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -785,7 +712,6 @@ toggleCompare(hospital) {
       </div>
     `;
     
-    // Append modal to body
     document.body.insertAdjacentHTML('beforeend', modalHtml);
   }
 
@@ -798,21 +724,19 @@ toggleCompare(hospital) {
       this.loadingIndicatorElement.style.display = show ? 'block' : 'none';
     }
   }
+
   /**
    * Get top hospitals by utilization
    * @param {number} limit - Maximum number of hospitals to return
    * @returns {Array} Top hospitals sorted by utilization
    */
   getTopHospitalsByUtilization(limit = 10) {
-    // Sort hospitals by utilization (descending)
     const sortedHospitals = this.dataService.hospitalsData.slice().sort((a, b) => {
       return (b.utilization || 0) - (a.utilization || 0);
     });
     
-    // Return the top N hospitals
     return sortedHospitals.slice(0, limit);
   }
-
 
   /**
    * Request user location with a clear message
@@ -825,7 +749,6 @@ toggleCompare(hospital) {
         return;
       }
       
-      // Show a message to the user about location usage
       const locationMessage = document.createElement('div');
       locationMessage.className = 'location-message';
       locationMessage.innerHTML = `
@@ -837,7 +760,6 @@ toggleCompare(hospital) {
       `;
       document.body.appendChild(locationMessage);
       
-      // Remove the message after 5 seconds
       setTimeout(() => {
         if (document.body.contains(locationMessage)) {
           document.body.removeChild(locationMessage);
@@ -846,7 +768,6 @@ toggleCompare(hospital) {
       
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          // Remove the message if it's still there
           if (document.body.contains(locationMessage)) {
             document.body.removeChild(locationMessage);
           }
@@ -857,7 +778,6 @@ toggleCompare(hospital) {
           });
         },
         (error) => {
-          // Remove the message if it's still there
           if (document.body.contains(locationMessage)) {
             document.body.removeChild(locationMessage);
           }
@@ -869,5 +789,3 @@ toggleCompare(hospital) {
     });
   }
 }
-
-// Will be initialized in main.js

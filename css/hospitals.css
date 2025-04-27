@@ -43,15 +43,8 @@
   color: #2c3e50;
 }
 
-.distance-badge {
-  display: inline-block;
-  background-color: #e8f4f8;
-  color: #3498db;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
+
+
 
 /* Center column - Hospital details */
 .hospital-details-column {
@@ -244,11 +237,33 @@
   display: inline-block;
   padding: 4px 8px;
   border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-left: 10px;
-  background-color: #f0f0f0;
-  color: #333;
+  font-size: 12px;
+  margin-top: 5px;
+  color: #fcf8f8;
+}
+.distance-very-close .distance-badge {
+  background-color: #28a745;
+  color: white;
+}
+
+.distance-close .distance-badge {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.distance-medium .distance-badge {
+  background-color: #ffc107;
+  color: black;
+}
+
+.distance-far .distance-badge {
+  background-color: #dc3545;
+  color: white;
+}
+
+.distance-unavailable .distance-badge {
+  background-color: #6c757d;
+  color: white;
 }
 
 /* Distance-based styling for hospital cards */
