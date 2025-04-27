@@ -645,30 +645,38 @@ class HospitalService {
   /**
    * Toggle hospital in compare list
    * @param {Object} hospital - Hospital to toggle
-   */
-  toggleCompare(hospital) {
-    const hospitalKey = `${hospital.NAME}-${hospital.CITY}`;
-    const index = this.selectedHospitals.findIndex(h => `${h.NAME}-${h.CITY}` === hospitalKey);
-    
-    if (index === -1) {
-      // Add to compare list if not already there
-      if (this.selectedHospitals.length >= 10) {
-        alert('You can compare up to 10 hospitals at a time. Please remove one first.');
-        return;
-      }
-      
-      this.selectedHospitals.push(hospital);
-    } else {
-      // Remove from compare list
-      this.selectedHospitals.splice(index, 1);
+ */
+toggleCompare(hospital) {
+  const hospitalKey = `${hospital.NAME}-${hospital.CITY}`;
+  const index = this.selectedHospitals.findIndex(h => `${h.NAME}-${h.CITY}` === hospitalKey);
+  
+  if (index === -1) {
+    // Add to compare list if not already there
+    if (this.selectedHospitals.length >= 10) {
+      alert('You can compare up to 10 hospitals at a time. Please remove one first.');
+      return;
     }
     
-    // Update comparison chart
-    this.updateComparisonChart();
-    
-    // Re-render hospitals to update compare buttons
-    this.renderHospitals();
+    this.selectedHospitals.push(hospital);
+  } else {
+    // Remove from compare list
+    this.selectedHospitals.splice(index, 1);
   }
+  
+  // Ensure cost comparison card is visible
+  const costComparisonCard = document.getElementById('cost-comparison-card');
+  if (costComparisonCard && this.selectedHospitals.length > 0) {
+    costComparisonCard.style.display = 'block';
+  } else if (costComparisonCard && this.selectedHospitals.length === 0) {
+    costComparisonCard.style.display = 'none';
+  }
+  
+  // Update comparison chart
+  this.updateComparisonChart();
+  
+  // Re-render hospitals to update compare buttons
+  this.renderHospitals();
+}
 
   /**
    * Update comparison chart with selected hospitals

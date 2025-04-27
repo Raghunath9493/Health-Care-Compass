@@ -29,10 +29,26 @@ class ChartService {
    * Initialize chart with default data
    */
   initializeChart() {
+    if (!this.chartCanvas) {
+      console.error('Chart canvas not found for #costComparisonChart');
+      this.chartCanvas = document.getElementById('costComparisonChart');
+      if (!this.chartCanvas) return;
+    }
+
+    // Ensure canvas is visible
+    const costComparisonCard = document.getElementById('cost-comparison-card');
+    if (costComparisonCard.style.display === '.none') {
+      console.warn('Cost comparison card is hidden; delaying chart initialization');
+      return;
+    }
+
+    console.log('Initializing chart with default data');
     // Default hospitals for initial chart
     if (window.dataService && window.dataService.hospitalsData.length > 0) {
       const defaultHospitals = window.dataService.hospitalsData.slice(0, 3);
       this.updateComparisonChart(defaultHospitals);
+    } else {
+      console.log('No default hospitals available for chart initialization');
     }
   }
 
@@ -42,10 +58,17 @@ class ChartService {
    * @param {string} treatment - Optional treatment to compare costs for
    */
   updateComparisonChart(hospitals, treatment = '') {
-    if (!this.chartCanvas) return;
-    
-    // If no hospitals selected, don't update chart
+    console.log('Updating chart with hospitals:', hospitals, 'Treatment:', treatment);
+
+    if (!this.chartCanvas) {
+      console.error('Chart canvas not found for #costComparisonChart');
+      this.chartCanvas = document.getElementById('costComparisonChart');
+      if (!this.chartCanvas) return;
+    }
+
+    // If no hospitals selected, clear chart
     if (!hospitals || hospitals.length === 0) {
+      console.log('No hospitals to display in chart');
       if (this.chartInstance) {
         this.chartInstance.data.labels = [];
         this.chartInstance.data.datasets[0].data = [];
@@ -56,8 +79,8 @@ class ChartService {
     
     // Sort hospitals by cost (ascending)
     const sortedHospitals = [...hospitals].sort((a, b) => {
-      const costA = treatment ? a.cost : (a.averageCost || 0);
-      const costB = treatment ? b.cost : (b.averageCost || 0);
+      const costA = treatment ? (a.cost || a.averageCost || 0) : (a.averageCost || 0);
+      const costB = treatment ? (b.cost || b.averageCost || 0) : (b.averageCost || 0);
       return costA - costB;
     });
     
@@ -70,7 +93,7 @@ class ChartService {
     
     if (treatment) {
       // If treatment is specified, get costs for that treatment
-      costs = sortedHospitals.map(hospital => hospital.cost || 0);
+      costs = sortedHospitals.map(hospital => hospital.cost || hospital.averageCost || 0);
       chartTitle = `${treatment} Cost Comparison`;
     } else {
       // Otherwise use average costs
@@ -83,6 +106,7 @@ class ChartService {
     
     // Create or update chart
     if (this.chartInstance) {
+      console.log('Updating existing chart instance');
       this.chartInstance.data.labels = labels;
       this.chartInstance.data.datasets[0].data = costs;
       this.chartInstance.data.datasets[0].backgroundColor = colors.background;
@@ -90,6 +114,7 @@ class ChartService {
       this.chartInstance.options.plugins.title.text = chartTitle;
       this.chartInstance.update();
     } else {
+      console.log('Creating new chart instance');
       const ctx = this.chartCanvas.getContext('2d');
       this.chartInstance = new Chart(ctx, {
         type: 'pie',

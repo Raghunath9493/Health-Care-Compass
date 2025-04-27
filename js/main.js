@@ -31,9 +31,6 @@ async function initializeApp() {
     // Initialize hospital service
     await window.hospitalService.initialize();
     
-    // Initialize chart with default data
-    window.chartService.initializeChart();
-    
     // Add event listeners for global actions
     addGlobalEventListeners();
     

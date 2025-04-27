@@ -79,9 +79,15 @@
 
 .chart-container {
   width: 100%; /* Match the parent card’s width */
+  height: 400px;
   max-width: 100%; /* Prevent overflow */
   padding: 20px; /* Consistent padding with hospital-list */
   box-sizing: border-box; /* Include padding in width */
+  position: relative;
+}
+#costComparisonChart {
+  max-width: 100%;
+  max-height: 100%;
 }
 
 
